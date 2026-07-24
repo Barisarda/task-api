@@ -64,4 +64,4 @@ initial three tasks.
 
 ## Author
 
-<Baris Arda Tekin> — FlyRank Backend AI Engineering Intern, Week 2
+Baris Arda Tekin — FlyRank Backend AI Engineering Intern, Week 2
