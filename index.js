@@ -1,5 +1,7 @@
 const __webpack_exports__ = require('create-expo-app')
 const express = require('express')
+const swaggerUi = require('swagger-ui-express')
+const swaggerDocument = require('./openapi.json')
 const app = express()
 const port = 3000
 let tasks = [
@@ -7,7 +9,9 @@ let tasks = [
   { id: 2, title: 'Build CRUD API', done: false },
   { id: 3, title: 'Push to GitHub', done: false }
 ]
+
 app.use(express.json())
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument))
 app.get('/',(req, res) => {
     res.json({name : 'Task API', version: '1.0', endpoints: ['/tasks']})
 })
