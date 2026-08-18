@@ -1,9 +1,32 @@
-const __webpack_exports__ = require('create-expo-app')
+
 const express = require('express')
 const swaggerUi = require('swagger-ui-express')
 const swaggerDocument = require('./openapi.json')
 const app = express()
 const port = 3000
+const Database = require('better-sqlite3')
+const db = new Database('tasks.db')
+db.exec(`
+  CREATE TABLE IF NOT EXISTS tasks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    done INTEGER NOT NULL DEFAULT 0
+  )
+`)
+
+const count = db.prepare('SELECT COUNT(*) AS c FROM tasks').get().c
+
+if(count === 0){
+    const insert = db.prepare('INSERT INTO tasks (title, done) VALUES (?, ?)')
+    insert.run('Learn Express', 0)
+    insert.run('Build CRUD API', 0)
+    insert.run('Push to Github', 0)
+}
+
+
+console.log('Tasks in DB:', db.prepare('SELECT COUNT(*) AS c FROM tasks').get().c)
+
+
 let tasks = [
   { id: 1, title: 'Learn Express', done: false },
   { id: 2, title: 'Build CRUD API', done: false },
@@ -16,15 +39,13 @@ app.get('/',(req, res) => {
     res.json({name : 'Task API', version: '1.0', endpoints: ['/tasks']})
 })
 
-app.get('/health',(req,res) =>{
+app.get('/health',(req,res) => {
     res.json({status:'ok'})
 })
 
-app.listen(port, () => {
-    console.log('Server listening on port ${port}')
-})
 
-app.get('/tasks/:id',(req,res) =>{
+
+app.get('/tasks/:id',(req,res) => {
     const id = Number(req.params.id)
     const task = tasks.find(t => t.id === id)
     if (task) {
@@ -39,7 +60,7 @@ app.get('/tasks', (req, res) => {
 res.json(tasks)
 })
 
-app.post('/tasks',(req,res) =>{
+app.post('/tasks',(req,res) => {
     const title = req.body.title
     if (!title){
        return res.status(400).json({error: 'Title is required.'})
@@ -64,13 +85,16 @@ app.put('/tasks/:id', (req, res) => {
     res.json(task)
 }) 
 
-app.delete('/tasks/:id',(req,res)=>{
+app.delete('/tasks/:id',(req,res) => {
     const id = Number(req.params.id)
-    const index = tasks.findIndex(t => t.id == id)
+    const index = tasks.findIndex(t => t.id === id)
     if (index === -1){
-        return res.status(404).json({ error : 'Task ${id} not found'})
+        return res.status(404).json({ error : `Task ${id} not found`})
     }
     tasks.splice(index, 1)
     res.status(204).end()
 })
 
+app.listen(port, () => {
+    console.log(`Server listening on port ${port}`)
+})
