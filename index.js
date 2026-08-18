@@ -47,7 +47,7 @@ app.get('/health',(req,res) => {
 
 app.get('/tasks/:id',(req,res) => {
     const id = Number(req.params.id)
-    const task = tasks.find(t => t.id === id)
+    const task = db.prepare('SELECT * FROM tasks WHERE id = ?').get(id)
     if (task) {
         res.status(200).json(task)
     } else {
@@ -57,7 +57,8 @@ app.get('/tasks/:id',(req,res) => {
 })
 
 app.get('/tasks', (req, res) => {
-res.json(tasks)
+const rows = db.prepare('SELECT * FROM tasks').all()
+res.json(rows)
 })
 
 app.post('/tasks',(req,res) => {
