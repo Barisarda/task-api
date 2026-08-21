@@ -66,8 +66,8 @@ app.post('/tasks',(req,res) => {
     if (!title){
        return res.status(400).json({error: 'Title is required.'})
     }
-    const newTask = {id:tasks.length + 1,title:title, done:false}
-    tasks.push(newTask)
+    const result = db.prepare('INSERT INTO tasks (title, done)VALUES (?, ?)').run(title, 0)
+    const newTask = db.prepare('SELECT * FROM tasks WHERE id = ?').get(result.lastInsertRowid)
     res.status(201).json(newTask)
 })
 
