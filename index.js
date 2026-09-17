@@ -26,13 +26,6 @@ if(count === 0){
 
 console.log('Tasks in DB:', db.prepare('SELECT COUNT(*) AS c FROM tasks').get().c)
 
-
-let tasks = [
-  { id: 1, title: 'Learn Express', done: false },
-  { id: 2, title: 'Build CRUD API', done: false },
-  { id: 3, title: 'Push to GitHub', done: false }
-]
-
 app.use(express.json())
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument))
 app.get('/',(req, res) => {
@@ -73,7 +66,7 @@ app.post('/tasks',(req,res) => {
 
 app.put('/tasks/:id', (req, res) => {
     const id = Number(req.params.id)
-    const task = tasks.find(t => t.id === id)
+    const task = db.prepare('SELECT * FROM tasks WHERE id = ?').get(id)
     if (!task) {
         return res.status(404).json({ error: `Task ${id} not found` })
     }
@@ -81,18 +74,20 @@ app.put('/tasks/:id', (req, res) => {
     if (title === undefined && done === undefined) {
         return res.status(400).json({ error: 'Provide title or done' })
     }
-    if (title !== undefined) task.title = title
-    if (done !== undefined) task.done = done
+    const newTitle = title !== undefined ? title : task.title 
+    const newDone = done !== undefined ? (done ? 1:0) : task.done
+    db.prepare('UPDATE tasks SET title = ?, done = ? WHERE id = ?').run(newTitle, newDone, id)
+
+    const updated = db.prepare('SELECT * FROM tasks WHERE id = ?').get(id)
     res.json(task)
 }) 
 
 app.delete('/tasks/:id',(req,res) => {
     const id = Number(req.params.id)
-    const index = tasks.findIndex(t => t.id === id)
-    if (index === -1){
+    const result = db.prepare('DELETE FROM tasks WHERE id = ?').run(id)
+    if (result.changes === 0){
         return res.status(404).json({ error : `Task ${id} not found`})
     }
-    tasks.splice(index, 1)
     res.status(204).end()
 })
 
