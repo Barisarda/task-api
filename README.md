@@ -89,15 +89,38 @@ documentation is available at `/docs` via Swagger UI.
 
 ## Storage
 
-Tasks are stored in a SQLite database (`tasks.db`) instead of in memory.
-SQLite was chosen because it needs no separate server, lives in a single file,
-requires zero configuration, and the data survives a server restart.
+Tasks are stored in PostgreSQL, running as a Docker container. This is the
+third storage layer this API has used: an in-memory array (A1), a SQLite file
+(A2), and now a real database server (A3). The endpoints never changed —
+only the code behind them.
 
-The database file is created automatically on first run, along with the
-`tasks` table and three example tasks. It is git-ignored, so a fresh clone
-starts with a clean database.
+## Run it
 
+The whole stack — API and database — starts with one command:
 
+```bash
+cp .env.example .env
+docker compose up
+```
+
+The API is at `http://localhost:3000`, Swagger UI at `http://localhost:3000/docs`.
+The database runs in its own container; its data lives in a Docker volume, so
+it survives `docker compose down`.
+
+## Configuration
+
+Secrets are never committed. Copy `.env.example` to `.env` and adjust:
+
+```
+DATABASE_URL=postgres://postgres:yourpassword@localhost:5432/tasks
+```
+
+Inside Docker Compose the host is `db` (the service name), not `localhost` —
+see `compose.yaml`.
+
+## Database screenshot
+
+![tasks table in Postgres](./postgres.png)
 ## Author
 
 <Baris Arda Tekin> — FlyRank Backend AI Engineering Intern, Week 3
