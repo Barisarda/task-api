@@ -6,6 +6,33 @@ const app = express()
 const port = 3000
 const Database = require('better-sqlite3')
 const db = new Database('tasks.db')
+const { Pool } = require('pg')
+console.log('DATABASE_URL:', process.env.DATABASE_URL)
+const pool = new Pool({ connectionString: process.env.DATABASE_URL })
+async function initDb() {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS tasks (
+      id SERIAL PRIMARY KEY,
+      title TEXT NOT NULL,
+      done BOOLEAN NOT NULL DEFAULT false
+      )  
+    `)
+
+    const result = await pool.query(`SELECT COUNT(*) FROM tasks`)
+    const count = Number (result.rows[0].count)
+    
+if (count === 0) {
+    await pool.query(
+      'INSERT INTO tasks (title, done) VALUES ($1, $2), ($3, $4), ($5, $6)',
+      ['Learn Express', false, 'Build CRUD API', false, 'Push to GitHub', false]
+    )
+  }
+
+  console.log('Database ready')
+}
+
+initDb().catch(err => console.error('initDb failed:', err))
+    
 db.exec(`
   CREATE TABLE IF NOT EXISTS tasks (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
